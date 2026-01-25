@@ -18,14 +18,14 @@ logger = logging.getLogger(__name__)
 class UserService:
     """Service for managing user data."""
     
-    def get_or_create_user(self, username: str = "default") -> User:
+    def get_or_create_user(self, username: str = "default") -> int:
         """Get existing user or create new one.
         
         Args:
             username: Username to get or create
         
         Returns:
-            User object
+            User ID (integer)
         """
         try:
             with get_db_session() as db:
@@ -43,7 +43,8 @@ class UserService:
                     db.commit()
                     logger.debug(f"Retrieved existing user: {username}")
                 
-                return user
+                # Return user_id to avoid detached instance issues
+                return user.id
         except Exception as e:
             logger.error(f"Failed to get/create user: {e}")
             raise DatabaseError(f"Failed to get/create user: {e}")
