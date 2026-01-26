@@ -93,7 +93,7 @@ class UserService:
         user_id: int,
         limit: int = 10,
         offset: int = 0
-    ) -> List[SearchHistory]:
+    ) -> List[dict]:
         """Get user's search history.
         
         Args:
@@ -102,7 +102,7 @@ class UserService:
             offset: Offset for pagination
         
         Returns:
-            List of SearchHistory objects
+            List of dictionaries with search history data
         """
         try:
             with get_db_session() as db:
@@ -115,8 +115,21 @@ class UserService:
                     .all()
                 )
                 
-                logger.debug(f"Retrieved {len(history)} search history entries for user {user_id}")
-                return history
+                # Convert to dictionaries to avoid detached instance issues
+                history_dicts = [
+                    {
+                        "id": search.id,
+                        "query": search.query,
+                        "category": search.category,
+                        "tone": search.tone,
+                        "results_count": search.results_count,
+                        "created_at": search.created_at
+                    }
+                    for search in history
+                ]
+                
+                logger.debug(f"Retrieved {len(history_dicts)} search history entries for user {user_id}")
+                return history_dicts
         except Exception as e:
             logger.error(f"Failed to get search history: {e}")
             raise DatabaseError(f"Failed to get search history: {e}")
@@ -204,7 +217,7 @@ class UserService:
         user_id: int,
         limit: int = 50,
         offset: int = 0
-    ) -> List[Favorite]:
+    ) -> List[dict]:
         """Get user's favorite books.
         
         Args:
@@ -213,7 +226,7 @@ class UserService:
             offset: Offset for pagination
         
         Returns:
-            List of Favorite objects
+            List of dictionaries with favorite data
         """
         try:
             with get_db_session() as db:
@@ -226,8 +239,19 @@ class UserService:
                     .all()
                 )
                 
-                logger.debug(f"Retrieved {len(favorites)} favorites for user {user_id}")
-                return favorites
+                # Convert to dictionaries to avoid detached instance issues
+                favorite_dicts = [
+                    {
+                        "id": fav.id,
+                        "book_isbn13": fav.book_isbn13,
+                        "notes": fav.notes,
+                        "created_at": fav.created_at
+                    }
+                    for fav in favorites
+                ]
+                
+                logger.debug(f"Retrieved {len(favorite_dicts)} favorites for user {user_id}")
+                return favorite_dicts
         except Exception as e:
             logger.error(f"Failed to get favorites: {e}")
             raise DatabaseError(f"Failed to get favorites: {e}")
